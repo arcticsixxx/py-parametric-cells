@@ -42,11 +42,22 @@ class Spiral(pya.PCellDeclarationHelper):
       outerHandleRadius = self.outHandle.distance(pya.DPoint(0,0))
 
     # Проверка что была изменена именно точка, а не параметр
-    if abs(self.innRadius - self.innMem) < 1e-6:
+    if abs(self.innRadius - self.innMem) < 1e-6 and abs(self.outRadius - self.outMem) < 1e-6:
       self.innMem = self.innerHandleRadius
+      self.innRadious = self.innerHandleRadius
       self.outMem = self.outerHandleRadius
+      self.outRadious = self.outerHandleRadius
+      
+    else:
+      self.innMem = self.innRadious
+      self.innHandle = pya.DPoint(-self.innRadious, 0)
+      self.outMem = self.outRadious
+      self.outHandle = pya.DPoint(-self.outRadious, 0)
+    
+    # n должна быть больше или равна 4
+    if self.n <= 4:
+      self.n = 4
 
-  
   def can_create_from_shape_impl(self):
     # Implement the "Create PCell from shape" protocol: we can use any shape which 
     # has a finite bounding box
@@ -55,7 +66,8 @@ class Spiral(pya.PCellDeclarationHelper):
   def parameters_from_shape_impl(self):
     # Implement the "Create PCell from shape" protocol: we set r and l from the shape's 
     # bounding box width and layer
-    self.r = self.shape.bbox().width() * self.layout.dbu / 2
+    self.innRadious = self.shape.bbox().width() * self.layout.dbu / 4
+    self.outRadious = self.shape.bbox().width() * self.layout.dbu / 2
     self.l = self.layout.get_info(self.layer)
   
   def transformation_from_shape_impl(self):
@@ -65,19 +77,27 @@ class Spiral(pya.PCellDeclarationHelper):
   
   def produce_impl(self):
   
-    # This is the main part of the implementation: create the layout
+    # Создание макета
 
     # fetch the parameters
-    ru_dbu = self.ru / self.layout.dbu
+    innRadiousDbu = self.innRadious / self.layout.dbu
+    outerRadiousDbu = self.outRadious / self.layout.dbu
     
     # compute the circle
     pts = []
     da = math.pi * 2 / self.n
-    for i in range(0, self.n):
-      pts.append(pya.Point.from_dpoint(pya.DPoint(ru_dbu * math.cos(i * da), ru_dbu * math.sin(i * da))))
+    dr = (self.width+self.spacing)/self.n/self.layout.dbu
+    currentRadius = innRadiousDbu
+    currentAngle = 0
+    while currentRadius < outerRadiousDbu:
+      pts.append(pya.Point.from_dpoint(pya.DPoint(currentRadius * math.cos(currentAngle), currentRadius * math.sin(currentAngle))))
+      currentRadius += dr
+      currentAngle = (currentAngle+da)%(math.pi*2)
     
     # create the shape
-    self.cell.shapes(self.l_layer).insert(pya.Polygon(pts))
+    self.cell.shapes(self.l_layer).insert(pya.Path(pts,self.width/self.layout.dbu))
+    
+
 
 
 class MyLib(pya.Library):
