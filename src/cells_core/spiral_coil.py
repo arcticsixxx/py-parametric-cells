@@ -52,24 +52,30 @@ class Spiral(pya.PCellDeclarationHelper):
       self.outMem = self.outRadius
       self.outHandle = pya.DPoint(-self.outRadius, 0)
     
+    # Количество точек должен быть больше 4
     if self.numPoints <= 4:
       self.numPoints = 4
   
   def can_create_from_shape_impl(self):
+    # Проверка может ли создасться Pcell из готовых форм
     return self.shape.is_box() or self.shape.is_polygon() or self.shape.is_path()
   
   def parameters_from_shape_impl(self):
+    # Задаётся внешний и внутренний радиус
     self.innRadius = self.shape.bbox().width() * self.layout.dbu / 4
     self.outRadius = self.shape.bbox().width() * self.layout.dbu / 2
     self.layer = self.layout.get_info(self.layer)
   
   def transformation_from_shape_impl(self):
+    # Ограничивающая рамка для определения преобразования
     return pya.Trans(self.shape.bbox().center())
   
   def produce_impl(self):
+    # Это основная часть реализации: создание макета
     innRadiusDbu = self.innRadius / self.layout.dbu
     outRadiusDbu = self.outRadius / self.layout.dbu
-    
+
+    # Вычисление спирали
     pts = []
     da = math.pi * 2 / self.numPoints
     dr = (self.width+self.spacing)/self.numPoints/self.layout.dbu
