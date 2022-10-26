@@ -88,7 +88,7 @@ class Spiral(pya.PCellDeclarationHelper):
       currRadius += dr
       currAngle = (currAngle+da)%(math.pi*2)
     
-    self.cell.shapes(self.l_layer).insert(pya.Path(pts,self.width/self.layout.dbu))
+    self.cell.shapes(self.layer_layer).insert(pya.Path(pts,self.width/self.layout.dbu))
 
 
 class MyLib(pya.Library):
