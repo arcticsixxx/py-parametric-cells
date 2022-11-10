@@ -97,5 +97,4 @@ class MyLib(pya.Library):
     self.description = "My First Library"
     self.layout().register_pcell("Spiral", Spiral())
     self.register("MyLib")
-
 MyLib()
